@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+    </style>
+</head>
+<body>
+<div id="game-container">
+    <div id="paddle-left" class="paddle"></div>
+    <div id="paddle-right" class="paddle"></div>
+    <div id="ball"></div>
+    <div id="score">
+        <span id="score-left">0</span> : <span id="score-right">0</span>
+    </div>
+</div>
+    <script>
+        const gameContainer = document.getElementById("game-container");
+const paddleLeft = document.getElementById("paddle-left");
+const paddleRight = document.getElementById("paddle-right");
+const ball = document.getElementById("ball");
+const scoreLeft = document.getElementById("score-left");
+const scoreRight = document.getElementById("score-right");
+
+let ballX = gameContainer.offsetWidth / 2;
+let ballY = gameContainer.offsetHeight / 2;
+let ballSpeedX = 4;
+let ballSpeedY = 4;
+
+let paddleLeftY = 150;
+let paddleRightY = 150;
+
+let scoreLeftValue = 0;
+let scoreRightValue = 0;
+const maxScore = 5;
+
+const paddleStep = 5; // Paddle speed (keyboard control)
+
+let keys = {
+    ArrowUp: false,
+    ArrowDown: false,
+};
+
+let gameRunning = true;
+
+// Game loop
+function gameLoop() {
+    if (gameRunning) {
+        movePaddles();
+        moveBall();
+        checkCollision();
+        updateUI();
+        checkWin();
+    }
+    requestAnimationFrame(gameLoop);
+}
+
+function movePaddles() {
+    // Left paddle control (keyboard)
+    if (keys.ArrowUp && paddleLeftY > 0) paddleLeftY -= paddleStep;
+    if (keys.ArrowDown && paddleLeftY < gameContainer.offsetHeight - 80) paddleLeftY += paddleStep;
+
+    // Right paddle (computer-controlled)
+    if (ballY < paddleRightY + 40) {
+        paddleRightY -= paddleStep;
+    } else if (ballY > paddleRightY + 40) {
+        paddleRightY += paddleStep;
+    }
+
+    // Prevent paddles from leaving the game area
+    paddleLeftY = Math.max(0, Math.min(paddleLeftY, gameContainer.offsetHeight - 80));
+    paddleRightY = Math.max(0, Math.min(paddleRightY, gameContainer.offsetHeight - 80));
+
+    // Update paddle positions
+    paddleLeft.style.top = `${paddleLeftY}px`;
+    paddleRight.style.top = `${paddleRightY}px`;
+}
+
+function moveBall() {
+    ballX += ballSpeedX;
+    ballY += ballSpeedY;
+
+    // Bounce off top and bottom walls
+    if (ballY <= 0 || ballY >= gameContainer.offsetHeight - 15) {
+        ballSpeedY *= -1;
+    }
+}
+
+function checkCollision() {
+    // Left paddle collision
+    if (
+        ballX <= 20 &&
+        ballY >= paddleLeftY &&
+        ballY <= paddleLeftY + 80
+    ) {
+        ballSpeedX *= -1.1; // Reverse and speed up
+    }
+    // Right paddle collision
+    else if (
+        ballX >= gameContainer.offsetWidth - 30 &&
+        ballY >= paddleRightY &&
+        ballY <= paddleRightY + 80
+    ) {
+        ballSpeedX *= -1.1; // Reverse and speed up
+    }
+    // Scoring
+    else if (ballX <= 0) {
+        scoreRightValue++;
+        resetBall();
+    } else if (ballX >= gameContainer.offsetWidth) {
+        scoreLeftValue++;
+        resetBall();
+    }
+}
+
+function resetBall() {
+    ballX = gameContainer.offsetWidth / 2;
+    ballY = gameContainer.offsetHeight / 2;
+    ballSpeedX = 4 * (Math.random() < 0.5 ? 1 : -1);
+    ballSpeedY = 4 * (Math.random() < 0.5 ? 1 : -1);
+}
+
+function updateUI() {
+    ball.style.left = `${ballX}px`;
+    ball.style.top = `${ballY}px`;
+
+    scoreLeft.textContent = scoreLeftValue;
+    scoreRight.textContent = scoreRightValue;
+}
+
+function checkWin() {
+    if (scoreLeftValue === maxScore || scoreRightValue === maxScore) {
+        gameRunning = false;
+        const winner = scoreLeftValue === maxScore ? "Left Player" : "Right Player";
+        alert(`${winner} wins!`);
+        restartGame();
+    }
+}
+
+function restartGame() {
+    scoreLeftValue = 0;
+    scoreRightValue = 0;
+    paddleLeftY = 150;
+    paddleRightY = 150;
+    resetBall();
+    gameRunning = true;
+}
+
+// Keyboard event listeners
+window.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowUp") keys.ArrowUp = true;
+    if (e.key === "ArrowDown") keys.ArrowDown = true;
+});
+
+window.addEventListener("keyup", (e) => {
+    if (e.key === "ArrowUp") keys.ArrowUp = false;
+    if (e.key === "ArrowDown") keys.ArrowDown = false;
+});
+
+// Start the game
+gameLoop();
+
+    </script>
+</body>
+</html>
